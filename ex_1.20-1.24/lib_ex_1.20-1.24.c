@@ -2,6 +2,8 @@
 #include <ctype.h>
 #include "lib_ex_1.20-1.24.h"
 
+// Test if set up is correct
+
 /*
 Exercise 1-20. Write a program detab that replaces
 tabs in the input with the proper number of blanks
