@@ -7,7 +7,7 @@
 int main()
 {
 	// Pasidometi ASCII escape chars for color text
-	char c, *cc;
+	char c, tmp;
 	
 	while(1)
 	{
@@ -15,9 +15,14 @@ int main()
 		puts("Availible functions for strings:");
 		puts("\t1 - detab (replaces tabs with spaces)");
 		puts("\t2 - entb (replaces multiple spaces with tabs)");
+		puts("\t0 - to exit");
 		puts("\033[35;106mSelect one function by entering its number:\033[m");
 		while((c = getchar()) == '\n' && c == '\0')
 			;
+		if((tmp = getchar()) != '\n' || tmp != '\0')
+		{
+			putchar(tmp);
+		}
 		if(isdigit(c))
 		{
 			switch(c)
@@ -38,14 +43,10 @@ int main()
 				if(c == 'y' || c == 'Y')
 					return 0;
 			}
-			if(c != '\n' && c != '\0')
-				getchar();
 		}
 		else
 		{
 			puts("\n\033[31;106mNot valid entry, please select again\033[m\n");	
-			if((c = getchar()) != '\n' && c != '\0')
-				putchar(c);
 		}
 	}
 }

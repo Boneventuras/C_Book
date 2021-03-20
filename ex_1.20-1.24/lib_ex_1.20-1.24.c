@@ -24,16 +24,20 @@ int detab (void)
 	
 	puts("\n\033[31;106mRunning detab\033[m\n");
 	fputs("Enter single digit number (0 - 9) to set tabstop: ",stdout);
-	while((tbStop = getchar()) == '\n' && tbStop == '\0' && !isdigit(tbStop) && (i < 5))
+	while(!isdigit(tbStop = getchar()))
+	{
 		tbStop == '\n' || tbStop == '\0' ? i++ :1;
-	while(getchar() == '\n')
-		;
+		if(i < 4)
+			break;
+	}
+	//while(getchar() == '\n')
+	//	;
 	if(i == 5)
 	{
 		puts("5 incorrect inputs, returning to main\n");
 		return 0;
 	}	
-	printf("tabstop set to %d\n", tbStop);
+	printf("tabstop set to %c\n", tbStop);
 	puts("Enter string to replace tabs with spaces:");
 	for(i = 0; (str[i] = getchar()) != '\0' && str[i] != '\n' && i < (MAXSTRLEN - 1); i++)
 		puts("1");
