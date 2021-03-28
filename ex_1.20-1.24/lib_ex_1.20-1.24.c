@@ -2,8 +2,6 @@
 #include <ctype.h>
 #include "lib_ex_1.20-1.24.h"
 
-// Test if set up is correct
-
 /*
 Exercise 1-20. Write a program detab that replaces
 tabs in the input with the proper number of blanks
@@ -20,32 +18,53 @@ int test ()
 
 int detab (void)
 {
-	short int tbStop;		// tabStop length
-	short int i = 0;			// index for iterations
+	int tbStop;		// tabStop length
+	int i, n, ns = 0;			// index for iterations
 	char str[MAXSTRLEN];	// Array for user input string
 	
-	puts("\n\033[31;106mRunning detab\033[m\n");
+	puts("\033[31;106mRunning detab\033[m\n");
 	fputs("Enter single digit number (0 - 9) to set tabstop: ",stdout);
 	while(!isdigit(tbStop = getchar()))
 	{
 		tbStop == '\n' || tbStop == '\0' ? i++ :1;
-		if(i < 4)
+		if(i < 5)
 			break;
 	}
-	//while(getchar() == '\n')
-	//	;
+	while(getchar() != '\n' && i < 5)
+		;
 	if(i == 5)
 	{
 		puts("5 incorrect inputs, returning to main\n");
 		return 0;
 	}	
 	printf("tabstop set to %c\n", tbStop);
+	tbStop -= 48;
 	puts("Enter string to replace tabs with spaces:");
-	for(i = 0; (str[i] = getchar()) != '\0' && str[i] != '\n' && i < (MAXSTRLEN - 1); i++)
-		puts("1");
-	str[i] = '\0';
+	for(i = 0; (str[i] = getchar()) != '\0' && str[i] != '\n' && i < (MAXSTRLEN - 1); i++, n++)
+		;
+	str[i + 1] = '\0';
+	n = 0;
+	for(i = 0; str[i] != '\0'; i++)
+	{
+		if(str[i] == '\t')
+		{
+			for(ns = tbStop - n%tbStop; ns > 0; ns--, n++)
+			{
+				putchar(' ');
+			}
+		}
+		/*else if(str[i] != '\n')
+		{
+			putchar(str[i]);
+			break;
+		}*/
+		else
+		{
+			putchar(str[i]);
+			n++;
+		}
+	}
 	
-	puts(str);
 	printf("num of chars %d.\n", i);
 	
 	return 0;

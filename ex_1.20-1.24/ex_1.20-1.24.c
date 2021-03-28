@@ -42,6 +42,9 @@ int main()
 					;
 				if(c == 'y' || c == 'Y')
 					return 0;
+				while((c = getchar()) != '\n' && c != '\0')
+					;
+				putchar('\n');
 			}
 		}
 		else
