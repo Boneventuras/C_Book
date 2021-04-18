@@ -7,6 +7,8 @@
 
 #define MAXSTRLEN 200
 
+extern int tbStop;
+
 /*
 Exercise 1-20. Write a program detab that replaces
 tabs in the input with the proper number of blanks
@@ -16,6 +18,8 @@ variable or a symbolic parameter?
 */
 
 int test(void);
+
+int gettabstop (void);
 
 int detab (void);
 //int detab (void);

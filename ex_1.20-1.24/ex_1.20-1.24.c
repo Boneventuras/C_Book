@@ -8,13 +8,12 @@ int main()
 {
 	// Pasidometi ASCII escape chars for color text
 	char c, tmp;
-	
 	while(1)
 	{
 		//test();
 		puts("Availible functions for strings:");
 		puts("\t1 - detab (replaces tabs with spaces)");
-		puts("\t2 - entb (replaces multiple spaces with tabs)");
+		puts("\t2 - entab (replaces multiple spaces with tabs)");
 		puts("\t0 - to exit");
 		puts("\033[35;106mSelect one function by entering its number:\033[m");
 		while((c = getchar()) == '\n' && c == '\0')
@@ -32,8 +31,7 @@ int main()
 				break;
 				
 				case '2':
-				puts("\n\033[31;106mentab\033[m\n");
-				test();
+				entab();
 				break;
 				
 				case '0':
