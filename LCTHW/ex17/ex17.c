@@ -245,31 +245,50 @@ void Database_list(struct Connection *conn){
 	}
 }
 
+int search_string (char *str, char *find_str){
+	int index;	
+
+	for(int j = 0; *(str + j) != '\0'; j++){
+		for(int i = 0; *(find_str + i) != '\0'; i++){
+	       		if(*(str + j + i) == *(find_str + i))
+				index = j;
+			else{
+				index = -1;
+				continue;
+			}
+		}
+		if(index >= 0)
+			return index;
+	}
+
+	return -1;
+}
+
 void Datbase_find(struct Connection *conn, char find_by, char *find_str){
-	switch (find_by){
-		case 'n':
-			
-		break;
-		case 'e':
+	int result;
 
-		break;
-		default:
-			printf("find_by is %c, find_str is %s\n", find_by, find_str);
-			die("Incorrect seach field.\
-					\n\tn - use to serch by name.\
-					\n\te - use to serch by name.", conn);
-
-
-
-
+	if(find_by != 'n' && find_by != 'e'){
+		printf("find_by is %c, find_str is %s\n", find_by, find_str);
+		die("Incorrect seach field.\
+				\n\tn - use to serch by name.\
+				\n\te - use to serch by name.", conn);
 	}
 
 	for(int i = 0; i < conn->db->max_rows; i++){
-		
-
+		switch (find_by){
+		case 'n':
+			result = search_string((conn->db->rows + i)->name, find_str);
+		break;
+		case 'e':
+			result = search_string((conn->db->rows + i)->email, find_str);
+		break;
+		}
+		printf("result = %d\n", result);
+		if(result /*search_string(conn->db->rows->name + srch_field, find_str)*/ >= 0){
+			puts("String found:");
+			Address_print(conn->db->rows + i);
+		}
 	}
-
-
 }
 
 int main(int argc, char *argv[]){
@@ -350,7 +369,7 @@ int main(int argc, char *argv[]){
 			Database_list(conn);
 		break;
 		case 'f':
-			// add find here
+			puts("Main:\tfind");
 			if(argc != 5) 
 				die("Need more arguments to search.\
 						\n\tf n *** - use to serch by name (* replace with string).\
