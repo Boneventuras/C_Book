@@ -19,8 +19,11 @@ struct Address {
 struct Address {
 	int id;
 	int set;
+	int age;
+	int rating;
 	char *name;
 	char *email;
+	char *town;
 };
 
 /*
@@ -151,13 +154,16 @@ void Database_write(struct Connection *conn)
 	fwrite(&conn->db->max_data, sizeof(conn->db->max_data), 2, conn->file);
 
 	for(int i = 0; i < index; i++){
-		rc = fwrite(&(conn->db->rows + i)->id, sizeof(conn->db->rows->id), 2, conn->file);
+		rc = fwrite(&(conn->db->rows + i)->id, sizeof(conn->db->rows->id), 4, conn->file);
+// add additional fields
 		if(rc == 0 ){
 			die("Failed to write database.", conn);
 		}
-		printf("(conn->db->rows + i)->name is\t%u\n", &(conn->db->rows + i)->name);
+		printf("(conn->db->rows + i)->name is\t%X\n", &(conn->db->rows + i)->name);
 		rc = fwrite((conn->db->rows + i)->name, sizeof(*conn->db->rows->name), conn->db->max_data, conn->file);
 		rc = fwrite((conn->db->rows + i)->email, sizeof(*conn->db->rows->email), conn->db->max_data, conn->file);
+		printf("town address is\t\t\t%X\n", (conn->db->rows + i)->town);
+		rc = fwrite((conn->db->rows + i)->town, sizeof(*conn->db->rows->town), conn->db->max_data, conn->file);
 	}
 
 	rc = fflush(conn->file);
@@ -179,6 +185,7 @@ void Database_create(struct Connection *conn, int maxRows, int maxData){
 		*(conn->db->rows + i) = addr;
 		(conn->db->rows + i)->name = (char *)calloc(maxData, sizeof(*conn->db->rows->name));
 		(conn->db->rows + i)->email = (char *)calloc(maxData, sizeof(*conn->db->rows->email));
+		(conn->db->rows + i)->town = (char *)calloc(maxData, sizeof(*conn->db->rows->town));
 	}
 }
 
@@ -314,7 +321,7 @@ int main(int argc, char *argv[]){
 
 	puts("Main before switch");
 	switch(action) {
-		case 'c':
+		case 'c': // create database
 			if(argc < 5){
 				puts("Need MAX_ROW and MAX_DATA to create database.");
 				puts("MAX_ROW and MAX_DATA is set to default: 10 and 10.");
@@ -334,14 +341,14 @@ int main(int argc, char *argv[]){
 			Database_write(conn);
 		break;
 
-		case 'g':
+		case 'g': // get database entry by ID
 			if(argc != 4) 
 				die("Need an id to get", conn);
 
 			Database_get(conn, id);
 		break;
 
-		case 's':
+		case 's': // save antry to database
 			puts("Main:\tIn case 's'");
 			if(argc != 6) 
 				die("Need id, name, email to set", conn);
@@ -354,7 +361,7 @@ int main(int argc, char *argv[]){
 			puts("Main:\tIn case 's':\tAfter write");
 		break;
 		
-		case 'd':
+		case 'd': // delete entry from database
 			puts("Main:\tIn case 'd'");
 			if(argc != 4) 
 				die("Need id to delete", conn);
@@ -363,12 +370,12 @@ int main(int argc, char *argv[]){
 			Database_write(conn);
 		break;
 
-		case 'l':
+		case 'l': // list database entries
 			puts("Main:\tIn list, start create");
 			
 			Database_list(conn);
 		break;
-		case 'f':
+		case 'f': // find database entry based on selected property
 			puts("Main:\tfind");
 			if(argc != 5) 
 				die("Need more arguments to search.\
@@ -380,19 +387,6 @@ int main(int argc, char *argv[]){
 			die("Invalid action, only: c=create, g=get, s=set, d=del, l=list", conn);
 	}
 	
-	/*
-	printf("struct Address is %d\n",(int)sizeof(struct Address));
-	printf("struct Database is %d\n",(int)sizeof(struct Database));
-	printf("struct Connection is %d\n",(int)sizeof(struct Connection));
-	printf("conn is %d\n",(int)sizeof(*conn));
-	printf("FILE is %d\n",(int)sizeof(*conn->file));
-	printf("db is %d\n",(int)sizeof(*conn->db));
-	printf("rows is %d\n",(int)sizeof(*conn->db->rows));
-	printf("name is %d\n",(int)sizeof(*conn->db->rows->name));
-	printf("email is %d\n",(int)sizeof(*conn->db->rows->email));
-	printf("conn->db->rows->name\naddress %lu\nvalue %s\n", conn->db->rows->name, conn->db->rows->name);
-	*/
-
 	Database_close(conn);
 
 	return 0;
