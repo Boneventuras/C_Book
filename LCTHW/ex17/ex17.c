@@ -106,13 +106,14 @@ void Database_load(struct Connection *conn){
 	for(int i = 0; i < conn->db->max_rows; i++){
 		//puts("for");
 		//printf("Name %lu\n", (conn->db->rows + i)->name);
-		fread((conn->db->rows + i), sizeof(int), 2, conn->file);
+		fread((conn->db->rows + i), sizeof(int), 4, conn->file);
 		//puts("after rows");
 		fread((conn->db->rows + i)->name, sizeof(char), conn->db->max_data, conn->file);
 		//puts("after name");
 		//printf("name is %s\n", (conn->db->rows + i)->name);
 		fread((conn->db->rows + i)->email, sizeof(char), conn->db->max_data, conn->file);
 		//puts("after email");
+		fread((conn->db->rows + i)->town, sizeof(char), conn->db->max_data, conn->file);
 	}
 }
 
@@ -146,9 +147,6 @@ void Database_write(struct Connection *conn)
 	int index = conn->db->max_rows;
 
 	puts("DB_write");
-	//rewind(conn->file);
-	//int rc = fwrite(conn->db, sizeof(struct Database), 1, conn->file);
-	//sizetowrite = 
 
 	fseek(conn->file, 0, 0);	
 	fwrite(&conn->db->max_data, sizeof(conn->db->max_data), 2, conn->file);
@@ -189,7 +187,7 @@ void Database_create(struct Connection *conn, int maxRows, int maxData){
 	}
 }
 
-void Database_set(struct Connection *conn, int id, const char *name, const char *email){
+void Database_set(struct Connection *conn, int id, const char *name, const char *email, const char *age, const char *rating, const char *town){
 	puts("DB_set");
 	struct Address *addr = (conn->db->rows + id);
 	
@@ -197,6 +195,8 @@ void Database_set(struct Connection *conn, int id, const char *name, const char 
 		die("Already set, delete it first", conn);
 
 	addr->set = 1;
+	addr->age = atoi(age);
+	addr->rating = atoi(rating);
 	
 	printf("*name\t%s\n*email\t%s\n", name, email);
 	printf("&addr->name\t%08X\naddr->name\t%c\n", &addr->name, addr->name);
@@ -210,6 +210,9 @@ void Database_set(struct Connection *conn, int id, const char *name, const char 
 	res = strncpy(addr->email, email, conn->db->max_data - 1);
 	if(!res) 
 		die("Email copy failed", conn);
+	res = strncpy(addr->town, town, conn->db->max_data - 1);
+	if(!res) 
+		die("Town copy failed", conn);
 
 	puts("Exit DB_set");
 }
@@ -230,8 +233,11 @@ void Database_delete(struct Connection *conn, int id){
 	puts("DB_delete");
 	
 	(conn->db->rows + id)->set = 0;
+	(conn->db->rows + id)->age = 0;	
+	(conn->db->rows + id)->rating = 0;
 	strncpy((conn->db->rows + id)->name, "\0", conn->db->max_data - 1);
 	strncpy((conn->db->rows + id)->email, "\0", conn->db->max_data - 1);
+	strncpy((conn->db->rows + id)->town, "\0", conn->db->max_data - 1);
 }
 
 void Database_list(struct Connection *conn){
@@ -348,20 +354,32 @@ int main(int argc, char *argv[]){
 			Database_get(conn, id);
 		break;
 
-		case 's': // save antry to database
+		case 's': // save entry to database
 			puts("Main:\tIn case 's'");
-			if(argc != 6) 
-				die("Need id, name, email to set", conn);
-			
-			puts("Main:\tIn case 's':\tafter die");
-			printf("argv[4] is %s, argv[5] is %s\n", argv[4], argv[5]);
-			Database_set(conn, id, argv[4], argv[5]);
-			puts("Main:\tIn case 's':\tAfter set");
+			char *str = "0";
+
+			if(argc < 6) 
+				die("At least need id, name, email to set, optional age, rating, town", conn);
+			switch(argc){
+				case 6:
+					Database_set(conn, id, argv[4], argv[5], str, str, str);
+				break;
+				case 7:
+					Database_set(conn, id, argv[4], argv[5], argv[6], str, str);
+				break;
+				case 8:
+					Database_set(conn, id, argv[4], argv[5], argv[6], argv[7], str);
+				break;
+				case 9:
+					Database_set(conn, id, argv[4], argv[5], argv[6], argv[7], argv[8]);
+				break;
+				default:
+					die("To much args", conn);
+			}
 			Database_write(conn);
-			puts("Main:\tIn case 's':\tAfter write");
 		break;
 		
-		case 'd': // delete entry from database
+		case 'd': // delete entry from database 4 4
 			puts("Main:\tIn case 'd'");
 			if(argc != 4) 
 				die("Need id to delete", conn);
