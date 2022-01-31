@@ -85,7 +85,7 @@ void die(const char *message, struct Connection *conn){
 
 void Address_print(struct Address *addr){
 	puts("Adr_Print");
-	printf("%d %s %s\n", addr->id, addr->name, addr->email);
+	printf("%3d %s %s %5d %5d %s\n", addr->id, addr->name, addr->email, addr->age, addr->rating, addr->town);
 }
 
 void Database_load(struct Connection *conn){
@@ -277,10 +277,36 @@ int search_string (char *str, char *find_str){
 	return -1;
 }
 
-void Datbase_find(struct Connection *conn, char find_by, char *find_str){
-	int result;
+int find_num (int num, int limit, char equation){
 
-	if(find_by != 'n' && find_by != 'e'){
+	switch(equation){
+		case 'e':
+			if(num == limit)
+				return 0;
+			break;
+		case 'l':
+			if(limit > num)
+				return 0;
+			break;
+		case 'g':
+			if(limit < num)
+				return 0;
+			break;
+		default:
+			printf("Incorrect or no condition is provided, use:\n\
+					\t%ce for =\n\t%cl for >\n\t%cg for <\n",\
+					equation, equation, equation);
+			return -2;
+	}
+	return -1;
+}
+
+void Datbase_find(struct Connection *conn, char *arg_str, char *find_str){
+	int result;
+	char find_by = arg_str[0];
+	char range = arg_str[1];
+
+	if(find_by != 'n' && find_by != 'e' && find_by != 'a' && find_by != 'r' && find_by != 't'){
 		printf("find_by is %c, find_str is %s\n", find_by, find_str);
 		die("Incorrect seach field.\
 				\n\tn - use to serch by name.\
@@ -289,16 +315,25 @@ void Datbase_find(struct Connection *conn, char find_by, char *find_str){
 
 	for(int i = 0; i < conn->db->max_rows; i++){
 		switch (find_by){
-		case 'n':
-			result = search_string((conn->db->rows + i)->name, find_str);
-		break;
-		case 'e':
-			result = search_string((conn->db->rows + i)->email, find_str);
-		break;
+			case 'n':
+				result = search_string((conn->db->rows + i)->name, find_str);
+			break;
+			case 'e':
+				result = search_string((conn->db->rows + i)->email, find_str);
+			break;
+			case 'a':
+				result = find_num((conn->db->rows + i)->age, atoi(find_str), range);
+			break;
+			case 'r':
+				result = find_num((conn->db->rows + i)->rating, atoi(find_str), range);
+			break;
+			case 't':
+				result = search_string((conn->db->rows + i)->town, find_str);
+			break;
 		}
-		printf("result = %d\n", result);
-		if(result /*search_string(conn->db->rows->name + srch_field, find_str)*/ >= 0){
-			puts("String found:");
+		
+		if(result >= 0){
+			puts("Entry found:");
 			Address_print(conn->db->rows + i);
 		}
 	}
@@ -353,8 +388,10 @@ int main(int argc, char *argv[]){
 
 			Database_get(conn, id);
 		break;
-
+	 
 		case 's': // save entry to database
+		// id, name, email required, age, rating town option
+		// usage: progname DB_file s id name email *age *rating *town
 			puts("Main:\tIn case 's'");
 			char *str = "0";
 
@@ -394,12 +431,16 @@ int main(int argc, char *argv[]){
 			Database_list(conn);
 		break;
 		case 'f': // find database entry based on selected property
+		// 
 			puts("Main:\tfind");
 			if(argc != 5) 
 				die("Need more arguments to search.\
-						\n\tf n *** - use to serch by name (* replace with string).\
-						\n\tf e *** - use to serch by name (* replace with string).", conn);
-			Datbase_find(conn, *argv[3], argv[4]);
+						\n\tf n *** - use to serch by name (*** replace with string).\
+						\n\tf e *** - use to serch by name (*** replace with string).\
+						\n\tf a* *** - use to search by age, (a* replace with ae for =, al for <, ag for >, *** with string\
+						\n\tf r* *** - use to search by age, (r* replace with re for =, rl for <, rg for >, *** with string\
+						\n\tf t *** - use to serch by name (*** replace with string).", conn);
+			Datbase_find(conn, argv[3], argv[4]);
 		break;
 		default:
 			die("Invalid action, only: c=create, g=get, s=set, d=del, l=list", conn);
