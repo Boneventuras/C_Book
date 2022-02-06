@@ -11,10 +11,10 @@ all:
 sg:
 	make clean
 	make singleGlobal_ex17
-	./singleGlobal_ex17 z.txt c 4 7
+	./singleGlobal_ex17 x.txt c 4 7
 
 clean:
-	rm -f ex17 singleGlobal_ex17 z.txt
+	rm -f ex17 singleGlobal_ex17 z.txt x.txt
 
 g_17_s:
 	gdb --args ./ex17 z.txt s 0 ABC abc

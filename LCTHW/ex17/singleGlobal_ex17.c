@@ -54,7 +54,6 @@ void Database_close(struct Connection *conn){
 		free(conn->set);
 		free(conn->age);
 		free(conn->rating);
-// patikrinti ar ka=kaip kitaip nereikia free ** char
 		free(conn->name);
 		free(conn->email);
 		free(conn->town);
@@ -77,9 +76,9 @@ void die(const char *message, struct Connection *conn){
 
 void Address_print(struct Connection *conn, int id){
 	puts("Adr_Print");
-	printf("%3d %s %s %5d %5d %s\n", id, conn->name + (id * conn->max_data), \
-			conn->email + (id * conn->max_data), conn->age + id, \
-			conn->rating + id, conn->town + (id * conn->max_data));
+	printf("%3d %s %s %5d %5d %s\n", id, *(conn->name + id), \
+			*(conn->email + id), *(conn->age + id), \
+			*(conn->rating + id), *(conn->town + id));
 }
 
 void Database_load(struct Connection *conn){
@@ -93,10 +92,12 @@ void Database_load(struct Connection *conn){
 		puts("Failed to load database, or database is empty.");
 
 	for(int i = 0; i < conn->max_rows; i++){
-		fread((conn->db->rows + i), sizeof(int), 4, conn->file);
-		fread((conn->db->rows + i)->name, sizeof(char), conn->max_data, conn->file);
-		fread((conn->db->rows + i)->email, sizeof(char), conn->max_data, conn->file);
-		fread((conn->db->rows + i)->town, sizeof(char), conn->max_data, conn->file);
+		fread(conn->set + i, sizeof(int), 1, conn->file);
+		fread(conn->age + i, sizeof(char), 1, conn->file);
+		fread(conn->rating + i, sizeof(char), 1, conn->file);
+		fread(*(conn->name + i), sizeof(char), conn->max_data, conn->file);
+		fread(*(conn->email + i), sizeof(char), conn->max_data, conn->file);
+		fread(*(conn->town + i), sizeof(char), conn->max_data, conn->file);
 	}
 }
 
@@ -125,25 +126,30 @@ struct Connection* Database_open(const char *filename, char mode){
 void Database_write(struct Connection *conn)
 {
 	int rc;
-	int index = conn->max_rows;
 
 	puts("DB_write");
 
 	fseek(conn->file, 0, 0);	
 	fwrite(&conn->max_data, sizeof(conn->max_data), 2, conn->file);
 
-	// add write from 2D arr
-	//
-	for(int i = 0; i < index; i++){
-		rc = fwrite(&(conn->db->rows + i)->id, sizeof(conn->db->rows->id), 4, conn->file);
+	for(int i = 0; i < conn->max_rows; i++){
+		rc = fwrite(conn->set + i, sizeof(*(conn->set)), 1, conn->file);
 		if(rc == 0 ){
 			die("Failed to write database.", conn);
 		}
-		printf("(conn->db->rows + i)->name is\t%X\n", &(conn->db->rows + i)->name);
-		rc = fwrite((conn->db->rows + i)->name, sizeof(*conn->db->rows->name), conn->max_data, conn->file);
-		rc = fwrite((conn->db->rows + i)->email, sizeof(*conn->db->rows->email), conn->max_data, conn->file);
-		printf("town address is\t\t\t%X\n", (conn->db->rows + i)->town);
-		rc = fwrite((conn->db->rows + i)->town, sizeof(*conn->db->rows->town), conn->max_data, conn->file);
+		rc = fwrite(conn->age + i, sizeof(*(conn->age)), 1, conn->file);
+		if(rc == 0 ){
+			die("Failed to write database.", conn);
+		}
+		rc = fwrite(conn->rating + i, sizeof(*(conn->rating)), 1, conn->file);
+		if(rc == 0 ){
+			die("Failed to write database.", conn);
+		}
+
+		rc = fwrite(*(conn->name + i), sizeof(**(conn->name)), conn->max_data, conn->file);
+		rc = fwrite(*(conn->email + i), sizeof(**(conn->email)), conn->max_data, conn->file);
+		printf("town address is\t\t\t%X, town is %s\n", *(conn->town + i), *(conn->town + i));
+		rc = fwrite(*(conn->town + i), sizeof(**(conn->town)), conn->max_data, conn->file);
 	}
 
 	rc = fflush(conn->file);
@@ -159,55 +165,45 @@ void Database_create(struct Connection *conn, int maxRows, int maxData){
 	conn->set = (int*)calloc(maxRows, sizeof(*(conn->set)));
 	conn->age = (int*)calloc(maxRows, sizeof(*(conn->age)));
 	conn->rating = (int*)calloc(maxRows, sizeof(*(conn->rating)));
-// kaip alloc 2D array
 	conn->name = (char**)calloc(maxRows, sizeof(*(conn->name)));
 	conn->email = (char**)calloc(maxRows, sizeof(*(conn->email)));
 	conn->town = (char**)calloc(maxRows, sizeof(*(conn->town)));
 
 	for(int i = 0; i < conn->max_rows; i++){
-		*(conn->name + i) = (char*)calloc(conn->max_data + 1, sizeof(char));
+		*(conn->name + i) = (char*)calloc(conn->max_data, sizeof(char));
 
-		*(conn-> email + i) = (char*)calloc(conn->max_data + 1, sizeof(char));
+		*(conn->email + i) = (char*)calloc(conn->max_data, sizeof(char));
 
-		*(conn->town + i) = (char*)calloc(conn->max_data + 1, sizeof(char));
-	}
-	for(int i = 0; i < maxRows; i++) {
-		// make a prototype to initialize it
-		struct Address addr = {.id = i, .set = 0};
-		// then just assign it
-		*(conn->db->rows + i) = addr;
-		(conn->db->rows + i)->name = (char *)calloc(maxData, sizeof(*conn->db->rows->name));
-		(conn->db->rows + i)->email = (char *)calloc(maxData, sizeof(*conn->db->rows->email));
-		(conn->db->rows + i)->town = (char *)calloc(maxData, sizeof(*conn->db->rows->town));
+		*(conn->town + i) = (char*)calloc(conn->max_data, sizeof(char));
 	}
 }
 
 void Database_set(struct Connection *conn, int id, const char *name, const char *email, const char *age, const char *rating, const char *town){
 	puts("DB_set");
-	struct Address *addr = (conn->db->rows + id);
 	
-	if(addr->set) 
+	if(*(conn->set + id)) 
 		die("Already set, delete it first", conn);
 
-	addr->set = 1;
-	addr->age = atoi(age);
-	addr->rating = atoi(rating);
+	*(conn->set + id) = 1;
+	*(conn->age + id) = atoi(age);
+	*(conn->rating + id) = atoi(rating);
 	
 	printf("*name\t%s\n*email\t%s\n", name, email);
-	printf("&addr->name\t%08X\naddr->name\t%c\n", &addr->name, addr->name);
-	printf("\n&addr->email\t%08X\naddr->email\t%c\n", &addr->email, addr->email);
+	printf("&addr->name\t%08X\naddr->name\t%s\n", *(conn->name + id), *(conn->name + id));
+	printf("\n&addr->email\t%08X\naddr->email\t%s\n", *(conn->email + id), *(conn->email + id));
 
-	char *res = strncpy(addr->name, name, conn->max_data - 1);
+	char *res = strncpy(*(conn->name + id), name, conn->max_data - 1);
 	
 	if(!res) 
 		die("Name copy failed", conn);
 
-	res = strncpy(addr->email, email, conn->max_data - 1);
+
+	res = strncpy(*(conn->email + id), email, conn->max_data - 1);
 	
 	if(!res) 
 		die("Email copy failed", conn);
 
-	res = strncpy(addr->town, town, conn->max_data - 1);
+	res = strncpy(*(conn->town + id), town, conn->max_data - 1);
 	
 	if(!res) 
 		die("Town copy failed", conn);
@@ -217,9 +213,8 @@ void Database_set(struct Connection *conn, int id, const char *name, const char 
 
 void Database_get(struct Connection *conn, int id){
 	puts("DB_get");
-	struct Address *addr = &conn->db->rows[id];
 
-	if(addr->set) {
+	if(*(conn->set + id)) {
 		Address_print(conn, id);
 	} 
 	else {
@@ -230,23 +225,19 @@ void Database_get(struct Connection *conn, int id){
 void Database_delete(struct Connection *conn, int id){
 	puts("DB_delete");
 	
-	(conn->db->rows + id)->set = 0;
-	(conn->db->rows + id)->age = 0;	
-	(conn->db->rows + id)->rating = 0;
-	strncpy((conn->db->rows + id)->name, "\0", conn->max_data - 1);
-	strncpy((conn->db->rows + id)->email, "\0", conn->max_data - 1);
-	strncpy((conn->db->rows + id)->town, "\0", conn->max_data - 1);
+	*(conn->set + id) = 0;
+	*(conn->age + id) = 0;	
+	*(conn->rating + id) = 0;
+	strncpy(*(conn->name + id), "\0", conn->max_data - 1);
+	strncpy(*(conn->email + id), "\0", conn->max_data - 1);
+	strncpy(*(conn->town + id), "\0", conn->max_data - 1);
 }
 
 void Database_list(struct Connection *conn){
-	int i = 0;
-	//struct Database *db = conn->db;
 	puts("DB_list");
 
-	for(i = 0; i < conn->max_rows; i++) {
-		struct Address *cur;
-		cur = (conn->db->rows + i);
-		if(cur->set) {
+	for(int i = 0; i < conn->max_rows; i++) {
+		if(*(conn->set + i)) {
 			Address_print(conn, i);
 		}
 	}
@@ -310,19 +301,19 @@ void Datbase_find(struct Connection *conn, char *arg_str, char *find_str){
 	for(int i = 0; i < conn->max_rows; i++){
 		switch (find_by){
 			case 'n':
-				result = search_string((conn->db->rows + i)->name, find_str);
+				result = search_string(*(conn->name + i), find_str);
 			break;
 			case 'e':
-				result = search_string((conn->db->rows + i)->email, find_str);
+				result = search_string(*(conn->email + i), find_str);
 			break;
 			case 'a':
-				result = find_num((conn->db->rows + i)->age, atoi(find_str), range);
+				result = find_num(*(conn->age + i), atoi(find_str), range);
 			break;
 			case 'r':
-				result = find_num((conn->db->rows + i)->rating, atoi(find_str), range);
+				result = find_num(*(conn->rating + i), atoi(find_str), range);
 			break;
 			case 't':
-				result = search_string((conn->db->rows + i)->town, find_str);
+				result = search_string(*(conn->town + i), find_str);
 			break;
 		}
 		
