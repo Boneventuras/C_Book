@@ -92,12 +92,12 @@ void Database_load(struct Connection *conn){
 		puts("Failed to load database, or database is empty.");
 
 	for(int i = 0; i < conn->max_rows; i++){
-		fread(conn->set + i, sizeof(int), 1, conn->file);
-		fread(conn->age + i, sizeof(char), 1, conn->file);
-		fread(conn->rating + i, sizeof(char), 1, conn->file);
-		fread(*(conn->name + i), sizeof(char), conn->max_data, conn->file);
-		fread(*(conn->email + i), sizeof(char), conn->max_data, conn->file);
-		fread(*(conn->town + i), sizeof(char), conn->max_data, conn->file);
+		rc = fread(conn->set + i, sizeof(int), 1, conn->file);
+		rc = fread(conn->age + i, sizeof(int), 1, conn->file);
+		rc = fread(conn->rating + i, sizeof(int), 1, conn->file);
+		rc = fread(*(conn->name + i), sizeof(char), conn->max_data, conn->file);
+		rc = fread(*(conn->email + i), sizeof(char), conn->max_data, conn->file);
+		rc = fread(*(conn->town + i), sizeof(char), conn->max_data, conn->file);
 	}
 }
 
@@ -181,8 +181,10 @@ void Database_create(struct Connection *conn, int maxRows, int maxData){
 void Database_set(struct Connection *conn, int id, const char *name, const char *email, const char *age, const char *rating, const char *town){
 	puts("DB_set");
 	
-	if(*(conn->set + id)) 
+	if(*(conn->set + id)){ 
+		printf("*(conn->set + id is %d, in hex %X\n", *(conn->set + id), *(conn->set + id));
 		die("Already set, delete it first", conn);
+	}
 
 	*(conn->set + id) = 1;
 	*(conn->age + id) = atoi(age);
