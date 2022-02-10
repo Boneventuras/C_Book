@@ -4,14 +4,10 @@
 #include <errno.h>
 #include <string.h>
 
-#define MAX_DATA 1
-#define MAX_ROWS 1
-
 struct Connection {
 	FILE *file;
 	int max_data;
 	int max_rows;
-	//int *id;
 	int *set;
 	int *age;
 	int *rating;
@@ -20,33 +16,9 @@ struct Connection {
 	char **town;
 };
 
-/*
-struct Address {
-	int id;
-	int set;
-	int age;
-	int rating;
-	char *name;
-	char *email;
-	char *town;
-};
-
-struct Database {
-	int max_data;
-	int max_rows;
-	struct Address *rows;
-};
-
-struct Connection {
-	FILE *file;
-	struct Database *db;
-};
-*/
-
 void Database_create(struct Connection *conn, int maxRows, int maxData);
 	
 void Database_close(struct Connection *conn){
-	puts("DB_close");
 	if(conn){
 		if(conn->file) 
 			fclose(conn->file);
@@ -62,7 +34,6 @@ void Database_close(struct Connection *conn){
 }
 
 void die(const char *message, struct Connection *conn){
-	puts("Die");
 	Database_close(conn);
 	if(errno) {
 		perror(message);
@@ -75,15 +46,12 @@ void die(const char *message, struct Connection *conn){
 }
 
 void Address_print(struct Connection *conn, int id){
-	puts("Adr_Print");
-	printf("%3d %s %s %5d %5d %s\n", id, *(conn->name + id), \
-			*(conn->email + id), *(conn->age + id), \
-			*(conn->rating + id), *(conn->town + id));
+	printf("%3d %-*s %-*s %5d %5d %-*s\n", id, conn->max_data + 2, *(conn->name + id), \
+			conn->max_data + 2, *(conn->email + id), *(conn->age + id), \
+			*(conn->rating + id), conn->max_data + 2, *(conn->town + id));
 }
 
 void Database_load(struct Connection *conn){
-
-	puts("DB_Load");
 	int rc = fread(&conn->max_data, sizeof(conn->max_data), 1, conn->file);
 	rc = fread(&conn->max_rows, sizeof(conn->max_rows), 1, conn->file);
 	Database_create(conn, conn->max_rows, conn->max_data);
@@ -102,8 +70,8 @@ void Database_load(struct Connection *conn){
 }
 
 struct Connection* Database_open(const char *filename, char mode){
-	puts("DB_open");
 	struct Connection *conn = malloc(sizeof(struct Connection));
+
 	if(!conn) 
 		die("Memory error", NULL);
 
@@ -127,8 +95,6 @@ void Database_write(struct Connection *conn)
 {
 	int rc;
 
-	puts("DB_write");
-
 	fseek(conn->file, 0, 0);	
 	fwrite(&conn->max_data, sizeof(conn->max_data), 2, conn->file);
 
@@ -148,7 +114,6 @@ void Database_write(struct Connection *conn)
 
 		rc = fwrite(*(conn->name + i), sizeof(**(conn->name)), conn->max_data, conn->file);
 		rc = fwrite(*(conn->email + i), sizeof(**(conn->email)), conn->max_data, conn->file);
-		printf("town address is\t\t\t%X, town is %s\n", *(conn->town + i), *(conn->town + i));
 		rc = fwrite(*(conn->town + i), sizeof(**(conn->town)), conn->max_data, conn->file);
 	}
 
@@ -159,7 +124,6 @@ void Database_write(struct Connection *conn)
 }
 
 void Database_create(struct Connection *conn, int maxRows, int maxData){
-	puts("DB_create");
 	conn->max_rows = maxRows;
 	conn->max_data = maxData;
 	conn->set = (int*)calloc(maxRows, sizeof(*(conn->set)));
@@ -171,18 +135,13 @@ void Database_create(struct Connection *conn, int maxRows, int maxData){
 
 	for(int i = 0; i < conn->max_rows; i++){
 		*(conn->name + i) = (char*)calloc(conn->max_data, sizeof(char));
-
 		*(conn->email + i) = (char*)calloc(conn->max_data, sizeof(char));
-
 		*(conn->town + i) = (char*)calloc(conn->max_data, sizeof(char));
 	}
 }
 
 void Database_set(struct Connection *conn, int id, const char *name, const char *email, const char *age, const char *rating, const char *town){
-	puts("DB_set");
-	
 	if(*(conn->set + id)){ 
-		printf("*(conn->set + id is %d, in hex %X\n", *(conn->set + id), *(conn->set + id));
 		die("Already set, delete it first", conn);
 	}
 
@@ -190,15 +149,10 @@ void Database_set(struct Connection *conn, int id, const char *name, const char 
 	*(conn->age + id) = atoi(age);
 	*(conn->rating + id) = atoi(rating);
 	
-	printf("*name\t%s\n*email\t%s\n", name, email);
-	printf("&addr->name\t%08X\naddr->name\t%s\n", *(conn->name + id), *(conn->name + id));
-	printf("\n&addr->email\t%08X\naddr->email\t%s\n", *(conn->email + id), *(conn->email + id));
-
 	char *res = strncpy(*(conn->name + id), name, conn->max_data - 1);
 	
 	if(!res) 
 		die("Name copy failed", conn);
-
 
 	res = strncpy(*(conn->email + id), email, conn->max_data - 1);
 	
@@ -209,13 +163,9 @@ void Database_set(struct Connection *conn, int id, const char *name, const char 
 	
 	if(!res) 
 		die("Town copy failed", conn);
-
-	puts("Exit DB_set");
 }
 
 void Database_get(struct Connection *conn, int id){
-	puts("DB_get");
-
 	if(*(conn->set + id)) {
 		Address_print(conn, id);
 	} 
@@ -225,8 +175,6 @@ void Database_get(struct Connection *conn, int id){
 }
 
 void Database_delete(struct Connection *conn, int id){
-	puts("DB_delete");
-	
 	*(conn->set + id) = 0;
 	*(conn->age + id) = 0;	
 	*(conn->rating + id) = 0;
@@ -236,8 +184,6 @@ void Database_delete(struct Connection *conn, int id){
 }
 
 void Database_list(struct Connection *conn){
-	puts("DB_list");
-
 	for(int i = 0; i < conn->max_rows; i++) {
 		if(*(conn->set + i)) {
 			Address_print(conn, i);
@@ -265,7 +211,6 @@ int search_string (char *str, char *find_str){
 }
 
 int find_num (int num, int limit, char equation){
-
 	switch(equation){
 		case 'e':
 			if(num == limit)
@@ -294,7 +239,6 @@ void Datbase_find(struct Connection *conn, char *arg_str, char *find_str){
 	char range = arg_str[1];
 
 	if(find_by != 'n' && find_by != 'e' && find_by != 'a' && find_by != 'r' && find_by != 't'){
-		printf("find_by is %c, find_str is %s\n", find_by, find_str);
 		die("Incorrect seach field.\
 				\n\tn - use to serch by name.\
 				\n\te - use to serch by name.", conn);
@@ -330,24 +274,18 @@ int main(int argc, char *argv[]){
 	if(argc < 3) 
 		die("USAGE: ex17 <dbfile> <action> [action params]", NULL);
 	
-	puts("Main Running");
-	
 	char *filename = argv[1];
 	char action = argv[2][0];
 	struct Connection *conn = Database_open(filename, action);
-	puts("Main After open");
 	int id = 0;
 	int maxRows = 0x0A, maxData = 0x0A;
 	
-	puts("Main before id num get");
 	if(argc > 3 && action != 'c') 
 		id = atoi(argv[3]);
 
-	puts("Main before MAX_ROWS check");
 	if(action != 'c' && id >= conn->max_rows) 
 		die("There's not that many records.", conn);
 
-	puts("Main before switch");
 	switch(action) {
 		case 'c': // create database
 			if(argc < 5){
@@ -362,9 +300,9 @@ int main(int argc, char *argv[]){
 				maxRows = atoi(argv[3]);
 				maxData = atoi(argv[4]) + 1;
 			}
-			// add stuff so it works
-			printf("maxRows = %d\n", maxRows);
-			printf("maxData = %d\n", maxData);
+			puts("Database dimensions:");
+			printf("\tMax number of entries = %d\n", maxRows);
+			printf("\tMax string length     = %d\n", maxData);
 			Database_create(conn, maxRows, maxData);
 			Database_write(conn);
 		break;
@@ -379,8 +317,7 @@ int main(int argc, char *argv[]){
 		case 's': // save entry to database
 		// id, name, email required, age, rating town option
 		// usage: progname DB_file s id name email *age *rating *town
-			puts("Main:\tIn case 's'");
-			char *str = "0";
+			char *str = " ";
 
 			if(argc < 6) 
 				die("At least need id, name, email to set, optional age, rating, town", conn);
@@ -404,7 +341,6 @@ int main(int argc, char *argv[]){
 		break;
 		
 		case 'd': // delete entry from database 4 4
-			puts("Main:\tIn case 'd'");
 			if(argc != 4) 
 				die("Need id to delete", conn);
 
@@ -413,13 +349,9 @@ int main(int argc, char *argv[]){
 		break;
 
 		case 'l': // list database entries
-			puts("Main:\tIn list, start create");
-			
 			Database_list(conn);
 		break;
 		case 'f': // find database entry based on selected property
-		// 
-			puts("Main:\tfind");
 			if(argc != 5) 
 				die("Need more arguments to search.\
 						\n\tf n *** - use to serch by name (*** replace with string).\
