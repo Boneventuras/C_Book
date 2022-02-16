@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e	# abort if error
+
 echo -e "\nRunning test for $1\n"
 
 check_status(){
