@@ -114,7 +114,8 @@ void test_sorting(int *numbers, int count, compare_cb cmp, test_func test){
 	}
 	printf("\n");
 
-	free(sorted);
+	if(numbers != sorted)
+		free(sorted);
 }
 
 int main(int argc, char *argv[]){
@@ -133,11 +134,10 @@ int main(int argc, char *argv[]){
 		numbers[i] = atoi(inputs[i]);
 	}
 
-//	selection_sort
-	test_sorting(numbers, count, sorted_order, selection_sort);
 	test_sorting(numbers, count, sorted_order, bubble_sort);
 	test_sorting(numbers, count, reverse_order, bubble_sort);
 	test_sorting(numbers, count, strange_order, bubble_sort);
+	test_sorting(numbers, count, sorted_order, selection_sort);
 	
 	free(numbers);
 
