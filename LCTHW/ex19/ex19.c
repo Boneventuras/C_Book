@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "ex19.h"
 #include <assert.h>
+#include "ex19.h"
 
 int Monster_attack(void *self, int damage){
 	assert(self != NULL);
@@ -79,6 +79,7 @@ int Room_attack(void *self, int damage){
 	Monster *monster = room->bad_guy;
 
 	if(monster) {
+		// gal cia reikia assert
 		monster->_(attack)(monster, damage);
 		return 1;
 	}
@@ -125,12 +126,17 @@ int Map_init(void *self){
 
 	// make some rooms for a small map
 	Room *hall = NEW(Room, "The great Hall");
+	assert(hall);
 	Room *throne = NEW(Room, "The throne room");
+	assert(throne);
 	Room *arena = NEW(Room, "The arena, with the minotaur");
+	assert(arena);
 	Room *kitchen = NEW(Room, "Kitchen, you have the knife now");
+	assert(kitchen);
 
 	// put the bad guy in the arena
 	arena->bad_guy = NEW(Monster, "The evil minotaur");
+	assert(arena->bad_guy);
 
 	// setup the map rooms
 	hall->north = throne;
@@ -161,9 +167,12 @@ int process_input(Map *game){
 	printf("\n> ");
 
 	char ch = getchar();
-	getchar(); // eat ENTER
+	while(getchar()!= '\n')
+		; // save only the first char and eat ENTER
 
 	int damage = rand() % 4;
+	if(damage < 1)
+		damage++;
 
 	switch(ch) {
 		case 'q':
@@ -188,7 +197,6 @@ int process_input(Map *game){
 		break;
 
 		case 'a':
-
 			game->_(attack)(game, damage);
 		break;
 
@@ -217,6 +225,7 @@ int main(int argc, char *argv[]){
 
 	// make our map to work with
 	Map *game = NEW(Map, "The Hall of the Minotaur.");
+	assert(game);
 
 	printf("You enter the ");
 	game->location->_(describe)(game->location);
