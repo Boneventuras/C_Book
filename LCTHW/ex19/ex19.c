@@ -133,9 +133,21 @@ int Map_init(void *self){
 	assert(arena);
 	Room *kitchen = NEW(Room, "Kitchen, you have the knife now");
 	assert(kitchen);
+	Room *lobby = NEW(Room, "The Lobby, with asskisser Lukshiknius");
+	assert(lobby);
+	Room *closet = NEW(Room, "The closet, with gay Kadyr-pyderovas");
+	assert(closet);
+	Room *toilet = NEW(Room, "The toilet, pathetic Putkinas");
+	assert(toilet);
 
 	// put the bad guy in the arena
 	arena->bad_guy = NEW(Monster, "The evil minotaur");
+	assert(arena->bad_guy);
+	toilet->bad_guy = NEW(Monster, "Putkinas");
+	assert(arena->bad_guy);
+	lobby->bad_guy = NEW(Monster, "Lukshiknius");
+	assert(arena->bad_guy);
+	closet->bad_guy = NEW(Monster, "Kadyr-pyderovas");
 	assert(arena->bad_guy);
 
 	// setup the map rooms
@@ -146,7 +158,15 @@ int Map_init(void *self){
 	throne->south = hall;
 
 	arena->east = throne;
+	arena->south = lobby;
+	
 	kitchen->west = throne;
+	kitchen->east = toilet;
+
+	toilet->west = kitchen;
+	toilet->north = closet;
+
+	closet->south = toilet;
 
 	// start the map and the character off in the hall
 	map->start = hall;
