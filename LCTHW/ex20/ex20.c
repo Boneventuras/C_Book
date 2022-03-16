@@ -90,8 +90,6 @@ int test_check_debug(){
 }
 
 int main(int argc, char *argv[]){
-	printf("argc is %d\n", argc);
-
 	check(argc == 2, "Need an argument.");
 
 	test_debug();
