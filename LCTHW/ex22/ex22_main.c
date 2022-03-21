@@ -2,6 +2,7 @@
 #include "dbg.h"
 
 const char *MY_NAME = "Zed A. Shaw";
+char *str = "Not";
 
 void scope_demo(int count){
 	log_info("count is: %d", count);
@@ -37,9 +38,9 @@ int main(int argc, char *argv[]){
 	print_size();
 
 	// test the ratio function static
-	log_info("Ratio at first: %f", update_ratio(2.0));
-	log_info("Ratio again: %f", update_ratio(10.0));
-	log_info("Ratio once more: %f", update_ratio(300.0));
+	log_info("Ratio at first: %f", (update_ratio(2.0)));
+	log_info("Ratio again: %f", (update_ratio(10.0)));
+	log_info("Ratio once more: %f", (update_ratio(300.0)));
 
 	// test the scope demo
 	int count = 4;
