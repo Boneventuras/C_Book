@@ -1,4 +1,5 @@
-CFLAGS = -Wall -g -ggdb3 -DNDEBUG #-rdynamic
+INC = -I/home/$(USER)/C_Book/LCTHW/comlib
+CFLAGS = -Wall -g -ggdb3 -DNDEBUG $(INC) #-rdynamic
 
 all: 
 	make clean
