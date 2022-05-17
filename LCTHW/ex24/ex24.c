@@ -36,7 +36,7 @@ int getint(int *var){
 				*var = 0;
 				return 0;
 			}
-			if(*(p + i) == '\n' || *(p + i) == EOF){
+			if(*(p + i) == '\n' || *(p + i) == '\0'){
 				*var = atoi(p);
 				return i;
 			}
@@ -52,36 +52,38 @@ int getint(int *var){
 int getfloat(float *var){
 	char s[MAX_FLOAT]; // Temp array
 	char p[MAX_FLOAT]; // Array to save input
-	int point_i = -1, i, len, count = 0;
+	int point_i = -1, i, len = 0, count = 0, neg = 0;
 	float temp;
 
 	if(fgets(p, MAX_FLOAT, stdin)){
 		// loop to get separator position and length of number
 		for(i = 0; i < MAX_FLOAT; i++){
+			if(*(p + i) == '-'){
+				neg = 1;
+			}
 			if(( (*(p + i) == '.') || (*(p + i) == ',') ) && (point_i < 0) && point_i == -1){
 				point_i = i;
-			}else if(*(p + i) == '\n' || *(p + i) == EOF){
+			}else if(*(p + i) == '\n' || *(p + i) == '\0'){
 				len = i;
 				break;
 			}
 		}
 
 		if(point_i <= -1){
-			if((len == 10 && (*p > '1')) || (len == 11 && (*p == '-' && *(p + 1) > '1'))){
+			if((len == 10 && (*p > '1')) || (len == 11 && (*p == '-' && *(p + 1) > '1')) || len > 11){
 				puts("Number out of range, please enter number between \
 						1 999 999 999 and -1 999 999 999.");
 				*var = 0;
 				return 0;
 			}
 			*var = (float)atoi(p);
-			return len;
 		}else if(point_i > -1){ // when the comma is the first char
 			memset(s, 0, MAX_FLOAT);
 			if(point_i == 0 && len >= 10){
-				memcpy(s, p, len);		
-				*var = (float)atoi(s + 1);
+				memcpy(s, p + 1, 9);		
+				*var = (float)atoi(s);
 
-				while(var > 0 && count++ <= len){
+				while(*var > 1 && count++ <= len){
 					*var = *var / 10;
 				}
 			}else if(point_i <= 10 && len <= MAX_FLOAT){ // when comma is one of the first 10 chars in input
@@ -95,18 +97,22 @@ int getfloat(float *var){
 					count = 0;
 					memcpy(s, p + point_i + 1, len - point_i - 1 < 10 ? len - point_i - 1 : 9);
 					temp = (float)atoi(p + point_i + 1);
-					while(temp > 0 && count++ < len - point_i - 1){
+					while(temp > 1 && count++ < len - point_i - 1){
 						temp = temp / 10;
 					}
-					return *var += temp;
+					if(!neg){
+						*var += temp;
+					}else{
+						*var -= temp;
+					}
 				}
 			}else{
 				puts("Undefined behavior");
 			}
 		}
 	}
-
-	return 0;
+	
+	return len;
 }
 
 int main(int argc, char *argv[]){
@@ -152,7 +158,7 @@ int main(int argc, char *argv[]){
 	printf("Last Name: %s", you.last_name);
 	printf("Age: %d\n", you.age);
 	printf("Eyes: %s\n", EYE_COLOR_NAMES[you.eyes]);
-	printf("Income: %f\n", you.income);
+	printf("Income: %.2f\n", you.income);
 
 	return 0;
 

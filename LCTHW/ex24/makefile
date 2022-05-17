@@ -5,6 +5,7 @@ all:
 	make clean
 	make ex24
 	#valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes -s ./ex24
+	#gdb --args ex24
 	./ex24
 
 clean:
