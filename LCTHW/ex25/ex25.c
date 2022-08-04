@@ -95,6 +95,8 @@ int print_str(char *buf, int len){
 	int i;
 
 	for(i = 0; i < len; i++){
+		if(buf[i] == '\0')
+			return i + 1;
 		fputc(buf[i], stdout);	// add code
 	}
 	return i + 1;
@@ -144,11 +146,11 @@ int int_to_s(int num, char *buf){
 int print_stuff(const char *fmt, ...){
 	int i = 0;
 	int rc = 0;
-	int *out_int = NULL;
-	char *out_char = NULL;  // unused, delete at clean up
-	char **out_string = NULL;
+//	int *out_int = NULL;
+	char out_char;  // unused, delete at clean up
+	char *out_string = NULL;
 	char int_buffer[18];
-	int max_buffer = 0;
+//	int max_buffer = 0;
 
 	va_list argp;
 	va_start(argp, fmt);
@@ -172,15 +174,23 @@ int print_stuff(const char *fmt, ...){
 				// change following cases to print
 
 				case 'c':
-					out_char = va_arg(argp, char *);
-					*out_char = fgetc(stdin);
+//					out_char = va_arg(argp, char);
+//					*out_char = fgetc(stdin);
+					fputc(va_arg(argp, int), stdout);
 				break;
 
 				case 's':
-					max_buffer = va_arg(argp, int);
-					out_string = va_arg(argp, char **);
-					rc = read_string(out_string, max_buffer);
-					check(rc == 0, "Failed to read string.");
+//					max_buffer = va_arg(argp, int);
+//					out_string = va_arg(argp, char **);
+
+					
+					out_string = va_arg(argp, char *);
+					rc = print_str(out_string, MAX_DATA);
+
+
+
+//					rc = read_string(out_string, max_buffer);
+					check(rc != 0, "Failed to print string.");
 				break;
 
 				default:
@@ -227,6 +237,9 @@ int main(int argc, char *argv[]){
 	printf("Last Name: %s", last_name);
 	printf("Age: %d\n", age);
 
+	print_stuff("First Name: %s", first_name);
+	print_stuff("Initial: '%c'\n", initial);
+	print_stuff("Last Name: %s", last_name);
 	print_stuff("Age: %d\n", age);
 
 	free(first_name);
