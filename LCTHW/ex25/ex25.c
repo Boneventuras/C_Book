@@ -91,6 +91,14 @@ error:
 	return -1;
 }
 
+/*
+ * function to print string
+ * - char *buf pointer to string first c har
+ * - int len number of chars tuo print
+ *
+ * - returns number of printedchars
+ */
+
 int print_str(char *buf, int len){
 	int i;
 
@@ -121,10 +129,9 @@ int int_to_s(int num, char *buf){
 	else{
 		if(temp < 0){
 			neg = 1;
-			//arr[index++] = '-';
 			temp *= -1;
 		}
-		for(index = 0; temp > 0; index++){ // gal reikia nuo galo varyti iki prad=ios ir gr1=inti t1 adres1 kur baig4
+		for(index = 0; temp > 0; index++){
 			arr[index] = temp % 10 + 48;
 			temp /= 10;
 		}
@@ -143,14 +150,18 @@ int int_to_s(int num, char *buf){
 	}
 }
 
+/* print all types of variables to stdout
+ * const char *fmt pointer to char string
+ * use va_list to get additional arguments
+ *
+ * return 0 if ok, -1 if error
+ */
+
 int print_stuff(const char *fmt, ...){
 	int i = 0;
 	int rc = 0;
-//	int *out_int = NULL;
-	char out_char;  // unused, delete at clean up
 	char *out_string = NULL;
 	char int_buffer[18];
-//	int max_buffer = 0;
 
 	va_list argp;
 	va_start(argp, fmt);
@@ -165,32 +176,17 @@ int print_stuff(const char *fmt, ...){
 
 				case 'd':
 					rc = va_arg(argp, int);
-					rc = int_to_s(rc, int_buffer);	// not tested function
-					rc = print_str(int_buffer, rc);		// change to print
-					
-					check(rc != EOF, "Failed to read int.");	// need to check if EOF is the right condition
+					rc = int_to_s(rc, int_buffer);	
+					rc = print_str(int_buffer, rc);		
+					check(rc != EOF, "Failed to read int.");
 				break;
 
-				// change following cases to print
-
 				case 'c':
-//					out_char = va_arg(argp, char);
-//					*out_char = fgetc(stdin);
 					fputc(va_arg(argp, int), stdout);
 				break;
 
 				case 's':
-//					max_buffer = va_arg(argp, int);
-//					out_string = va_arg(argp, char **);
-
-					
 					out_string = va_arg(argp, char *);
-					rc = print_str(out_string, MAX_DATA);
-
-
-
-//					rc = read_string(out_string, max_buffer);
-					check(rc != 0, "Failed to print string.");
 				break;
 
 				default:
@@ -237,6 +233,7 @@ int main(int argc, char *argv[]){
 	printf("Last Name: %s", last_name);
 	printf("Age: %d\n", age);
 
+	printf("\n---- RESULTS printed with print_stuff----\n");
 	print_stuff("First Name: %s", first_name);
 	print_stuff("Initial: '%c'\n", initial);
 	print_stuff("Last Name: %s", last_name);
